@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr
 from datetime import date, time
 from typing import Optional, List
 
-# Member Schemas
+# Member Schema
 class MemberBase(BaseModel):
     first_name: str
     last_name: str
