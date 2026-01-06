@@ -110,7 +110,10 @@ class MemberService:
             PersonalTrainingSession.scheduled_date >= date.today()
         ).order_by(PersonalTrainingSession.scheduled_date).all()
 
-        upcoming_classes = self.db.query(ClassEnrollment).join(GroupClass).filter(
+        from sqlalchemy.orm import joinedload
+        upcoming_classes = self.db.query(ClassEnrollment).options(
+            joinedload(ClassEnrollment.group_class)
+        ).join(GroupClass).filter(
             ClassEnrollment.member_id == member_id,
             ClassEnrollment.attendance_status == AttendanceStatus.REGISTERED,
             GroupClass.scheduled_date >= date.today()
