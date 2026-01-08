@@ -1,6 +1,6 @@
 # Fitness Club Management System
 
-A full-stack fitness club management application with FastAPI backend and React frontend.
+Full-stack fitness club management application with FastAPI backend and React frontend.
 
 ## Project Structure
 
