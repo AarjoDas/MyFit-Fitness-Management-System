@@ -87,6 +87,9 @@ logs/
 *.sqlite
 *.sqlite3
 
+# ML artifacts
+backend/ml/artifacts/*.joblib
+
 # Temporary files
 *.tmp
 *.temp
