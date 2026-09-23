@@ -69,6 +69,17 @@ export interface ClassEnrollment {
   attendance_status: string;
 }
 
+export interface ClassRecommendation {
+  class_id: number;
+  class_name: string;
+  scheduled_date: string;
+  start_time: string;
+  trainer_id: number;
+  trainer_name?: string;
+  score: number;
+  reason: string;
+}
+
 // Member API
 export const memberAPI = {
   register: async (data: {
@@ -104,6 +115,13 @@ export const memberAPI = {
     const response = await api.post('/classes/enroll', {
       member_id: memberId,
       class_id: classId,
+    });
+    return response.data;
+  },
+
+  getRecommendations: async (memberId: number, limit = 5): Promise<ClassRecommendation[]> => {
+    const response = await api.get(`/members/${memberId}/recommendations`, {
+      params: { limit },
     });
     return response.data;
   },
@@ -209,6 +227,16 @@ export const adminAPI = {
 
   cancelClass: async (classId: number) => {
     const response = await api.delete(`/admin/classes/${classId}`);
+    return response.data;
+  },
+
+  getRecommendationMetrics: async () => {
+    const response = await api.get('/admin/recommendations/metrics');
+    return response.data;
+  },
+
+  retrainRecommendations: async () => {
+    const response = await api.post('/admin/recommendations/retrain');
     return response.data;
   },
 };

@@ -5,6 +5,7 @@ from database.connection import get_db
 from services.member_service import MemberService
 from services.trainer_service import TrainerService
 from services.admin_service import AdminService
+from services.recommendation_service import RecommendationService
 import schemas
 
 app = FastAPI(title="Fitness Club API")
@@ -27,6 +28,9 @@ def get_trainer_service(db: Session = Depends(get_db)):
 
 def get_admin_service(db: Session = Depends(get_db)):
     return AdminService(db)
+
+def get_recommendation_service(db: Session = Depends(get_db)):
+    return RecommendationService(db)
 
 # --- MEMBER ROUTES ---
 
@@ -128,6 +132,20 @@ def list_all_rooms(service: MemberService = Depends(get_member_service)):
 def list_all_classes(service: MemberService = Depends(get_member_service)):
     """Get all available classes"""
     return service.get_all_classes()
+
+@app.get("/members/{member_id}/recommendations", response_model=list[schemas.ClassRecommendation])
+def get_member_recommendations(
+    member_id: int,
+    limit: int = 5,
+    service: RecommendationService = Depends(get_recommendation_service),
+):
+    """Recommend upcoming group classes for a member."""
+    try:
+        return service.get_recommendations(member_id, limit=limit)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 # --- TRAINER ROUTES ---
 
@@ -248,3 +266,19 @@ def cancel_class(class_id: int, service: AdminService = Depends(get_admin_servic
         return {"message": "Class successfully cancelled"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+@app.get("/admin/recommendations/metrics")
+def recommendation_metrics(service: RecommendationService = Depends(get_recommendation_service)):
+    """Return last training metrics from metrics.json."""
+    try:
+        return service.get_metrics()
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@app.post("/admin/recommendations/retrain")
+def retrain_recommendations(service: RecommendationService = Depends(get_recommendation_service)):
+    """Retrain the class recommendation model from current enrollments."""
+    try:
+        return service.retrain()
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))

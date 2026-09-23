@@ -255,5 +255,3 @@ python -m reset_database
 ```bash
 python main.py
 ```
-
-whaddup mud
