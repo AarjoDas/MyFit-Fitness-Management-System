@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { memberAPI } from '../../utils/api';
+import { memberAPI, ClassRecommendation } from '../../utils/api';
 import { Link } from 'react-router-dom';
 
 interface DashboardData {
@@ -32,6 +32,10 @@ interface DashboardData {
 const MemberDashboard: React.FC = () => {
   const { userId, logout } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [recommendations, setRecommendations] = useState<ClassRecommendation[]>([]);
+  const [recLoading, setRecLoading] = useState(false);
+  const [recError, setRecError] = useState('');
+  const [bookingId, setBookingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -41,15 +45,45 @@ const MemberDashboard: React.FC = () => {
     }
   }, [userId]);
 
+  const loadRecommendations = async () => {
+    if (!userId) return;
+    try {
+      setRecLoading(true);
+      setRecError('');
+      const recs = await memberAPI.getRecommendations(userId, 5);
+      setRecommendations(recs);
+    } catch (err: any) {
+      setRecommendations([]);
+      setRecError(err.response?.data?.detail || 'Recommendations unavailable');
+    } finally {
+      setRecLoading(false);
+    }
+  };
+
   const loadDashboard = async () => {
     try {
       setLoading(true);
       const dashboardData = await memberAPI.getDashboard(userId!);
       setData(dashboardData);
+      await loadRecommendations();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBookRecommendation = async (classId: number) => {
+    if (!userId) return;
+    try {
+      setBookingId(classId);
+      setRecError('');
+      await memberAPI.enrollInClass(userId, classId);
+      await loadDashboard();
+    } catch (err: any) {
+      setRecError(err.response?.data?.detail || 'Failed to enroll in class');
+    } finally {
+      setBookingId(null);
     }
   };
 
@@ -123,6 +157,42 @@ const MemberDashboard: React.FC = () => {
           </Link>
         </div>
 
+        <div className="bg-white p-6 rounded-lg shadow mb-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Recommended for you</h3>
+          {recError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+              {recError}
+            </div>
+          )}
+          {recLoading ? (
+            <p className="text-gray-500">Loading recommendations...</p>
+          ) : recommendations.length === 0 ? (
+            <p className="text-gray-500">No recommendations right now. Check upcoming classes below.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recommendations.map((rec) => (
+                <div key={rec.class_id} className="border border-gray-200 rounded-lg p-4 flex flex-col">
+                  <p className="font-medium text-gray-900">{rec.class_name}</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {new Date(rec.scheduled_date).toLocaleDateString()} · {rec.start_time}
+                  </p>
+                  {rec.trainer_name && (
+                    <p className="text-sm text-gray-600">Trainer: {rec.trainer_name}</p>
+                  )}
+                  <p className="text-sm text-indigo-700 mt-2 flex-1">{rec.reason}</p>
+                  <button
+                    onClick={() => handleBookRecommendation(rec.class_id)}
+                    disabled={bookingId === rec.class_id}
+                    className="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {bookingId === rec.class_id ? 'Booking...' : 'Book'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Upcoming PT Sessions</h3>
@@ -179,4 +249,3 @@ const MemberDashboard: React.FC = () => {
 };
 
 export default MemberDashboard;
-

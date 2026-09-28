@@ -61,6 +61,14 @@ const AdminDashboard: React.FC = () => {
             <h3 className="text-xl font-semibold text-gray-900 mb-2">View Members</h3>
             <p className="text-gray-600">View all registered members</p>
           </Link>
+
+          <Link
+            to="/admin/recommendations"
+            className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Recommendation Metrics</h3>
+            <p className="text-gray-600">View eval results and retrain the class recommender</p>
+          </Link>
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ import ManageRooms from './pages/admin/ManageRooms';
 import ManageTrainers from './pages/admin/ManageTrainers';
 import ManageClasses from './pages/admin/ManageClasses';
 import ViewMembers from './pages/admin/ViewMembers';
+import RecommendationMetrics from './pages/admin/RecommendationMetrics';
 
 function App() {
   return (
@@ -131,6 +132,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <ViewMembers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/recommendations"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <RecommendationMetrics />
               </ProtectedRoute>
             }
           />

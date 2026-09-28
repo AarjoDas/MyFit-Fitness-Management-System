@@ -77,3 +77,13 @@ class GroupClassReschedule(BaseModel):
     new_date: date
     new_start: time
     new_end: time
+
+class ClassRecommendation(BaseModel):
+    class_id: int
+    class_name: str
+    scheduled_date: date
+    start_time: time
+    trainer_id: int
+    trainer_name: Optional[str] = None
+    score: float
+    reason: str
