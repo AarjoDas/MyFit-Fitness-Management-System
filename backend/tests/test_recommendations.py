@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from ml.evaluate import precision_at_k
 from ml.features import FEATURE_NAMES, _trainer_specialization_match, feature_vector_to_list
-from ml.predict import rank_by_popularity
+from ml.predict import rank_by_popularity, score_features
 from services.recommendation_service import eligible_candidates
 
 
@@ -59,3 +59,17 @@ def test_precision_at_3():
     ranked = [1, 2, 3, 4]
     assert precision_at_k(ranked, {3, 9}, k=3) == 1 / 3
     assert precision_at_k(ranked, {1, 2, 3}, k=3) == 1.0
+
+
+def test_cold_start_without_trained_model_still_returns_candidates():
+    yoga = SimpleNamespace(class_name="Morning Yoga")
+    hiit = SimpleNamespace(class_name="HIIT Blast")
+    artifact = {"model": None, "popularity": {"Morning Yoga": 12, "HIIT Blast": 3}}
+    ranked = rank_by_popularity(artifact, [hiit, yoga], limit=5)
+    assert len(ranked) == 2
+    assert ranked[0][0].class_name == "Morning Yoga"
+
+
+def test_missing_model_does_not_crash_scoring():
+    score = score_features({"model": None, "popularity": {}}, {name: 0.0 for name in FEATURE_NAMES})
+    assert score == 0.0

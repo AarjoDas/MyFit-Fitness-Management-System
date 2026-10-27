@@ -151,7 +151,17 @@ Then log in as Alice (usually member ID `1`) to see yoga-leaning recommendations
 
 ### Evaluation
 
-`python -m ml.train` writes `backend/ml/artifacts/metrics.json` (committed) and `rec_v1.joblib` (gitignored). Metrics include precision@3 vs a global most-popular `class_name` baseline on a time-based split (train: first 60 of ~90 days, test: days 60–90).
+`python -m ml.train` writes `backend/ml/artifacts/metrics.json` (commit this file after a real training run) and `rec_v1.joblib` (gitignored). Metrics include precision@3 vs a global most-popular `class_name` baseline on a time-based split (train: first 60 of ~90 days, test: days 60–90).
+
+If `rec_v1.joblib` is missing, the API still returns popularity-ranked upcoming classes so cold-start and first-run demos are never empty.
+
+| Metric | Source |
+| --- | --- |
+| precision_at_3 | `metrics.json` from `python -m ml.train` |
+| baseline_precision_at_3 | popularity of `class_name` on the same split |
+| train_rows / test_rows | labeled (member, class) pairs including negatives |
+
+Do not paste invented numbers into this table. After a training run, copy values from `metrics.json` or Admin → Recommendation Metrics.
 
 ### Limitations
 

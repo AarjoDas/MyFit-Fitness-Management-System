@@ -142,8 +142,6 @@ def get_member_recommendations(
     """Recommend upcoming group classes for a member."""
     try:
         return service.get_recommendations(member_id, limit=limit)
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=503, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

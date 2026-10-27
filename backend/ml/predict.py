@@ -22,7 +22,9 @@ def load_artifact(path: Path | None = None) -> dict[str, Any]:
 
 
 def score_features(artifact: dict[str, Any], features: dict[str, float]) -> float:
-    model = artifact["model"]
+    model = artifact.get("model")
+    if model is None:
+        return 0.0
     x = np.array([feature_vector_to_list(features)])
     if hasattr(model, "predict_proba"):
         return float(model.predict_proba(x)[0][1])

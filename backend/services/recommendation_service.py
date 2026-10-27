@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import date
 from pathlib import Path
 
@@ -36,7 +37,7 @@ class RecommendationService:
         if not member:
             raise ValueError("Member not found.")
 
-        artifact = load_artifact(self.model_path)
+        artifact = self._load_artifact_or_popularity()
         today = date.today()
         upcoming = (
             self.db.query(GroupClass)
@@ -61,13 +62,21 @@ class RecommendationService:
 
         candidates = eligible_candidates(upcoming, enrolled_ids)
         booking_count = self._booking_count(member_id)
-        if booking_count == 0:
+        missing_model = artifact.get("model") is None
+        use_popularity = booking_count == 0 or missing_model
+        if use_popularity:
             ranked = rank_by_popularity(artifact, candidates, limit)
             return [
                 self._serialize(
                     group_class,
                     score,
-                    self._explain(member, group_class, {}, cold_start=True),
+                    self._explain(
+                        member,
+                        group_class,
+                        {},
+                        cold_start=booking_count == 0,
+                        missing_model=missing_model,
+                    ),
                 )
                 for group_class, score in ranked
             ]
@@ -97,6 +106,21 @@ class RecommendationService:
 
         return json.loads(METRICS_PATH.read_text(encoding="utf-8"))
 
+    def _load_artifact_or_popularity(self) -> dict:
+        try:
+            return load_artifact(self.model_path)
+        except FileNotFoundError:
+            return {"model": None, "popularity": self._class_name_popularity()}
+
+    def _class_name_popularity(self) -> dict[str, int]:
+        rows = (
+            self.db.query(GroupClass.class_name)
+            .join(ClassEnrollment, ClassEnrollment.class_id == GroupClass.class_id)
+            .filter(ClassEnrollment.attendance_status.in_(list(POSITIVE_STATUSES)))
+            .all()
+        )
+        return dict(Counter(name for (name,) in rows))
+
     def _booking_count(self, member_id: int) -> int:
         return (
             self.db.query(ClassEnrollment)
@@ -113,7 +137,10 @@ class RecommendationService:
         group_class: GroupClass,
         features: dict[str, float],
         cold_start: bool = False,
+        missing_model: bool = False,
     ) -> str:
+        if missing_model and not cold_start:
+            return f"{group_class.class_name} is ranked by club-wide popularity until a model is trained"
         if cold_start:
             return f"{group_class.class_name} is among the most popular classes at the club"
 

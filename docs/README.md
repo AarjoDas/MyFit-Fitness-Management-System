@@ -255,3 +255,11 @@ python -m reset_database
 ```bash
 python main.py
 ```
+
+## Recommendation System
+
+The FastAPI app can rank upcoming group classes for a member using scikit-learn (logistic regression) trained on `class_enrollments`. Full and already-enrolled classes are excluded. New members with no bookings get a popularity fallback.
+
+Historical enrollments for training are **synthetic** (`database/seed_historical_data.py`). Eval numbers in `ml/artifacts/metrics.json` come from `python -m ml.train`, not live gym traffic.
+
+See the root `README.md` for the feature table, demo script, and limitations.

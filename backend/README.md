@@ -26,7 +26,10 @@ backend/
 ├── services/           # Business logic layer
 │   ├── member_service.py
 │   ├── trainer_service.py
-│   └── admin_service.py
+│   ├── admin_service.py
+│   └── recommendation_service.py
+├── ml/                 # Class recommender (features, train, eval, predict)
+│   └── artifacts/      # metrics.json (commit) + rec_v1.joblib (gitignored)
 └── client/             # CLI client (legacy)
     ├── main_menu.py
     ├── member_menu.py

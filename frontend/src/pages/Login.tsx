@@ -67,7 +67,10 @@ const Login: React.FC = () => {
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
           Fitness Club
         </h1>
-        <p className="text-center text-gray-600 mb-8">Login to your account</p>
+        <p className="text-center text-gray-600 mb-2">Login to your account</p>
+        <p className="text-center text-sm text-gray-500 mb-8">
+          After seeding: Alice is usually member ID 1. Register a new member to try popularity fallback.
+        </p>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
